@@ -20,6 +20,15 @@ const shopRoute = require("./routes/shop");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use((req, res, next) => {
+  User.findByPk(1).then(user => {
+    req.user = user; 
+    next();
+  }).catch(err => {
+    console.log(err);
+  })
+})
+
 app.use("/admin", adminRoutes);
 app.use(shopRoute);
 
@@ -30,8 +39,19 @@ User.hasMany(Product);
 
 //force ở đây để mỗi lần start thì drop các bảng trong db
 sequelize
-  .sync({ force: true })
+  // .sync({ force: true })
+  .sync()
   .then((result) => {
+    return User.findByPk(1)
+  })
+  .then(user => {
+    if(!user) {
+      User.create({ name: 'Tuan', email: "ntmt2502@gmail.com" })
+    }
+    return user;
+  })
+  .then(user => {
+    // console.log(user);
     app.listen(port, () => {
       console.log(`http://localhost:${port}/`);
     });
