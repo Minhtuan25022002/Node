@@ -8,6 +8,8 @@ const ErrorController = require("./controllers/error");
 const sequelize = require("./util/database");
 const Product = require('./models/products');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 const port = 3000;
 
@@ -36,6 +38,10 @@ app.use(ErrorController.get404);
 
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem });
+Product.belongsToMany(Cart, { through: CartItem });
 
 //force ở đây để mỗi lần start thì drop các bảng trong db
 sequelize
@@ -51,7 +57,9 @@ sequelize
     return user;
   })
   .then(user => {
-    // console.log(user);
+    return user.createCart();
+  })
+  .then(user => {
     app.listen(port, () => {
       console.log(`http://localhost:${port}/`);
     });
